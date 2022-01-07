@@ -4,7 +4,7 @@ const request = require("request");
 const mailchimp = require("@mailchimp/mailchimp_marketing");
 const app = express();
 
-app.listen(3000, function() {
+app.listen(process.env.PORT || 3000, function() {
   console.log("the server is listening to 3000")
 });
 
