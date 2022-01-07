@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const request = require("request");
+const https = require("https");
 const mailchimp = require("@mailchimp/mailchimp_marketing");
 const app = express();
 
@@ -25,40 +26,66 @@ mailchimp.setConfig({
 });
 //As soon as the sign in button is pressed execute this
 app.post("/", function(req, res) {
-      var fN = req.body.FName;
-      var lN = req.body.LName;
-      var Email_ = req.body.Email_;
-      const listId = "8e142a08a4";
-      //Creating an object with the users data
-      const subscribingUser = {
-        firstName: fN,
-        lastName: lN,
-        email: Email_
-      }
-      //Uploading the data to the server
-      async function run() {
-        const response = await mailchimp.lists.addListMember(listId, {
-          email_address: subscribingUser.email,
-          status: "subscribed",
-          merge_fields: {
-            FNAME: subscribingUser.firstName,
-            LNAME: subscribingUser.lastName
-          }
-        });
-        if (response.statusCode === 200) {
-          //If all goes well logging the contact's id
-          res.sendFile(__dirname + "/success.html")
-          console.log(
-            `Successfully added contact as an audience member. The contact's id is ${
-          response.id   }.`);
-        } else {
-          res.sendFile(__dirname + "/failure.html")
+  var fN = req.body.FName;
+  var lN = req.body.LName;
+  var Email_ = req.body.Email_;
+  const listId = "8e142a08a4";
+  console.log(fN, lN, Email_);
+  //Creating an object with the users data
+  const udata = {
+    firstName: fN,
+    lastName: lN,
+    email: Email_
+  }
+  //console.log(subscribingUser.email, subscribingUser.firstName, subscribingUser.lastName);
+
+  const data = {
+    members: [
+      {
+        email_address: Email_,
+        status: "subscribed",
+        merge_fields: {
+          FNAME: fN,
+          LNAME: lN,
         }
+      }
+    ]
+  };
 
-      }});
+  const options = {
+    method: "POST",
+    auth: "Rajkiran Bargota:8148fbd1a926311f0a75799f5e314c13-us20"
+  }
 
-    //API Key
-    //8148fbd1a926311f0a75799f5e314c13-us20
+  const jsonData = JSON.stringify(data);
+  const url = "https://us20.api.mailchimp.com/3.0/lists/8e142a08a4";
 
-    //Unique id
-    //8e142a08a4
+  const request = https.request(url, options, function(response) {
+
+    if (response.statusCode === 200) {
+      res.sendFile(__dirname + "/success.html");
+    } else {
+      res.sendFile(__dirname + "/failure.html");
+    }
+
+    response.on("data", function(data) {
+      console.log(JSON.parse(data));
+    });
+
+  });
+
+  request.write(jsonData);
+  request.end();
+});
+
+//app.post("/failure", function(req, res) {
+//  res.redirect("/")
+//});
+
+
+
+//API Key
+//8148fbd1a926311f0a75799f5e314c13-us20
+
+//Unique id
+//8e142a08a4
